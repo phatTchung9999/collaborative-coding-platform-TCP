@@ -1,0 +1,13 @@
+*.pdf
+*.txt
+
+# Earlier socket demos
+/client.py
+/server.py
+/client_multithreaded.py
+/server_multithreaded.py
+
+# Local generated files
+__pycache__/
+*.py[cod]
+.DS_Store

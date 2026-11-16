@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shared editor</title>
+  <style>
+    body { margin: 16px; }
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      height: calc(100dvh - 32px);
+      padding: 12px;
+      font: 16px/1.5 monospace;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+  <textarea aria-label="Shared editor" spellcheck="false"></textarea>
+  <script>
+    const editor = document.querySelector("textarea");
+    let edited = false;
+
+    editor.addEventListener("input", () => { edited = true; });
+
+    async function sync() {
+      const sending = edited;
+      edited = false;
+      try {
+        const response = await fetch("/code", sending ? {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: editor.value })
+        } : { cache: "no-store" });
+
+        if (!response.ok) throw new Error("Sync failed");
+        if (!sending) {
+          const { code } = await response.json();
+          if (!edited && editor.value !== code) editor.value = code;
+        }
+      } catch (error) {
+        if (sending) edited = true;
+        console.error(error);
+      } finally {
+        setTimeout(sync, 200);
+      }
+    }
+
+    sync();
+  </script>
+</body>
+</html>
